@@ -39,6 +39,8 @@ Rails.application.routes.draw do
                 authorizations: 'oauth/authorizations'
   end
 
+  match 'baction',  to: 'broto#baction',  constraints: {format:'json'}, via: :post
+
   # Autocomplete
   get '/autocomplete/users' => 'autocomplete#users'
   get '/autocomplete/users/:id' => 'autocomplete#user'

@@ -5,7 +5,9 @@
   .accept-merge-holder.clearfix.js-toggle-container
     .clearfix
       .accept-action
-        - if @ci_commit && @ci_commit.active?
+        - if @merge_request.target_branch == "sprout"
+          You will find no approvals here; Broto the Robot owns this request.
+        - elsif @ci_commit && @ci_commit.active?
           %span.btn-group
             = button_tag class: "btn btn-create js-merge-button merge_when_build_succeeds" do
               Merge When Build Succeeds

@@ -1,6 +1,6 @@
 module MergeRequests
   class CreateService < MergeRequests::BaseService
-    def execute
+    def execute (opt_author=false)
       # @project is used to determine whether the user can set the merge request's
       # assignee, milestone and labels. Whether they can depends on their
       # permissions on the target project.
@@ -12,7 +12,11 @@ module MergeRequests
       merge_request = MergeRequest.new(params.except(:label_ids))
       merge_request.source_project = source_project
       merge_request.target_project ||= source_project
-      merge_request.author = current_user
+      if opt_author == false
+      	merge_request.author = current_user
+      else
+      	merge_request.author = params[:author]
+      end
 
       if merge_request.save
         merge_request.update_attributes(label_ids: label_params)

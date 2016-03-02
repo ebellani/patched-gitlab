@@ -65,7 +65,9 @@ class MergeRequest < ActiveRecord::Base
     end
 
     event :mark_as_merged do
-      transition [:reopened, :opened, :locked] => :merged
+      # BROTO-FEATURE-1: can't merge if target is "sprout"
+      transition [:reopened, :opened, :locked] => :merged, \
+		if: ->(merge_request) {merge_request.target_branch != "sprout"}
     end
 
     event :reopen do
@@ -79,6 +81,26 @@ class MergeRequest < ActiveRecord::Base
     event :unlock_mr do
       transition locked: :reopened
     end
+
+	########################################
+	# START: BROTO events
+
+    event :broto_enter_nightly do
+      # BROTO-FEATURE-2: can't brotocheck if target is not "sprout"
+      transition [:reopened, :opened, :locked] => :brotocheck, \
+		if: ->(merge_request) {merge_request.target_branch == "sprout"}
+    end
+
+    event :broto_mark_as_merged do
+      transition :brotocheck => :merged
+    end
+
+    event :broto_close do
+      transition :brotocheck => :closed
+    end
+
+	# END: BROTO events
+	########################################
 
     after_transition any => :locked do |merge_request, transition|
       merge_request.locked_at = Time.now
@@ -95,6 +117,7 @@ class MergeRequest < ActiveRecord::Base
     state :closed
     state :merged
     state :locked
+    state :brotocheck # BROTO!
   end
 
   state_machine :merge_status, initial: :unchecked do
